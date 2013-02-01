@@ -184,6 +184,36 @@ class IndexController extends Zend_Controller_Action
         $viewed = array();
         foreach( $rowset as $view ) $viewed[] = $view['number'];
         $this->view->viewed = $viewed;
+
+        if( $this->getRequest()->isPost() ) {
+
+            $type = $this->_getParam('type', '');
+
+            if( $type == 'feedback' ) {
+
+                $subject = trim($this->_getParam('subject', ''));
+                $message = trim($this->_getParam('message', ''));
+
+                if( $subject == '' && $message == '' ) {
+                    $this->view->feedbackError = true;
+                    $this->view->humanReadableError = $this->view->translate('Please write a message before you try to send it.');
+                    return;
+                }
+
+                $to = Zend_Mail::getDefaultFrom();
+
+                $mail = new Zend_Mail('UTF-8');
+                $mail->setFrom('kristoffer.a.iversen@gmail.com', 'EpCtrl.com');
+                $mail->addTo($to['email'], $to['name']);
+                $mail->setReplyTo($this->_user->email);
+                $mail->setSubject('EpCtrl.com – ' . $subject);
+                $mail->setBodyText($message);
+                $mail->send();
+
+                return $this->_redirect('/');
+
+            }else throw new Exception('Invalid post type');
+        }
     }
 
     public function favouriteAction()
