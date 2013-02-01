@@ -4,6 +4,27 @@
         <div class="row">
             <div class="span8">
                 <h1><?php echo $this->translate('Overview'); ?></h1>
+                <h4><?php echo $this->translate('Next available episodes'); ?>:</h4>
+                <table class="table table-condensed table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width:300px;"><?php echo $this->translate('Show'); ?></th>
+                            <th><?php echo $this->translate('Season'); ?></th>
+                            <th><?php echo $this->translate('Episode'); ?></th>
+                            <th><?php echo $this->translate('Availability'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+<?php foreach( $this->availableEpisodes as $directory => $episode ): ?>
+                        <tr>
+                            <td><a href="<?php echo $this->baseUrl(); ?>/index/show/directory/<?php echo $directory; ?>"><?php echo $this->index[$directory]['title']; ?></a></td>
+                            <td><?php echo $episode['season']; ?></td>
+                            <td><?php echo $episode['episode']; ?></td>
+                            <td><?php echo ($episode['aired'] ? '<a href="' . $this->baseUrl() . '/index/markviewed/directory/' . $directory . '/number/' . $episode['number'] . '"><span class="label label-success">' . $this->translate('Available') . '</span></a>' : ($episode['today'] ? '<span class="label label-info">' . $this->translate('Today') . '</span>' : '<span class="label label-inverse">' . $episode['daysUntilAired'] . ' ' . $this->translate('days left') . '</span>')); ?></td>
+                        </tr>
+<?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
             <div class="span4">
                 <ul class="nav nav-list affix-top" data-spy="affix" data-offset-top="70">

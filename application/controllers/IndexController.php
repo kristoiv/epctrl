@@ -130,6 +130,14 @@ class IndexController extends Zend_Controller_Action
         $favouriteTable = new Zend_Db_Table('Favourite');
         $favourites = $this->view->favourites = $favouriteTable->fetchAll( $favouriteTable->select()->where('user_id = ?', $this->_user->id)->order('directory ASC') );
 
+        $availableEpisodes = array();
+        foreach( $favourites as $favourite ) {
+            $episode = $this->_getNextAvailableEpisode($favourite->directory);
+            if( $episode != null ) $availableEpisodes[$favourite->directory] = $episode;
+        }
+            //print_r($availableEpisodes);die();
+        $this->view->availableEpisodes = $availableEpisodes;
+
         if( $this->getRequest()->isPost() ) {
 
             $type = $this->_getParam('type', '');
@@ -168,6 +176,9 @@ class IndexController extends Zend_Controller_Action
 
         $show     = $this->view->show     = new Zend_Config($this->_index[$directory]);
         $episodes = $this->view->episodes = new Zend_Config($this->_getEpisodes($directory));
+
+        $next = $this->_getNextAvailableEpisode($directory);
+        $next     = $this->view->next     = (is_null($next) ? null : new Zend_Config($next));
 
         // Get favourites
         $favouriteTable = new Zend_Db_Table('Favourite');
@@ -482,6 +493,8 @@ class IndexController extends Zend_Controller_Action
         
         $config = $this->_config;
         $cache = $this->_cache;
+
+        //$cache->clean(Zend_Cache::CLEANING_MODE_ALL);
         
         if( ($episodes = $cache->load($directory)) === false ) {
             
@@ -510,7 +523,6 @@ class IndexController extends Zend_Controller_Action
                     $episode['today'] = $date->format('Y-m-d') == date('Y-m-d');
                 }
 
-
                 $episode['special'] = $episode['special?'] != 'n';
                 unset($episode['special?']);
 
@@ -522,7 +534,31 @@ class IndexController extends Zend_Controller_Action
 
         }
 
+        foreach( $episodes as &$episode ) {
+            if( !$episode['aired'] && !$episode['today'] ) {
+                $time = strtotime($episode['airdate']);
+                $episode['daysUntilAired'] = floor(($time-time())/60/60/24);
+            }
+        }
+
         return $episodes;
+    }
+
+    protected function _getNextAvailableEpisode($directory)
+    {
+        // Get list of viewed episodes
+        $viewTable = new Zend_Db_Table('View');
+        $rowset = $viewTable->fetchAll( $viewTable->select()->from('View', 'number')->where('user_id = ?', $this->_user->id)->where('directory = ?', $directory) );
+        $viewed = array();
+        foreach( $rowset as $view ) $viewed[] = $view['number'];
+
+        $episodes = $this->_getEpisodes($directory);
+
+        foreach( $episodes as $episode ) if( !in_array($episode['number'], $viewed) ) {
+            return $episode;
+        }
+
+        return null;
     }
 }
 
