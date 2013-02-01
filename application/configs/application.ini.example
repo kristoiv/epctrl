@@ -23,6 +23,8 @@ resources.mail.transport.auth       = "login"
 resources.mail.transport.ssl        = "tls"
 resources.mail.transport.username   = "example"
 resources.mail.transport.password   = "example"
+resources.mail.defaultFrom.email    = "example@example.com"
+resources.mail.defaultFrom.name     = "EpCtrl.com"
 
 portal.title  = "EpCtrl.com"
 portal.login.expire = 31536000
@@ -31,6 +33,11 @@ portal.cache.frontend.automatic_serialization = true
 portal.cache.backend.cache_dir = APPLICATION_PATH "/../cache/"
 portal.epguides.allshows = "http://epguides.com/common/allshows.txt"
 portal.epguides.episodes = "http://epguides.com/common/exportToCSV.asp?rage="
+
+; Iteration count for password hashing 4 <= iteration_count <= 31 (log2, eg. 2^8 = 256 iterations)
+portal.password.iteration_count = 8
+; Force weak crypt hashes
+portal.password.portable = false
 
 [staging : production]
 

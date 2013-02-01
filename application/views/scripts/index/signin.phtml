@@ -33,9 +33,9 @@
                         <form method="POST">
                             <fieldset>
                                 <input type="hidden" name="type" value="signup" />
-                                <input type="text" name="email" value="<?php echo $this->signupEmail; ?>" placeholder="Your email" />
-                                <input type="password" name="password" placeholder="Your password" />
-                                <input type="password" name="passwordAgain" placeholder="… and again" />
+                                <input type="text" name="signupEmail" value="<?php echo $this->signupEmail; ?>" placeholder="Your email" />
+                                <input type="password" name="signupPassword" placeholder="Your password" />
+                                <input type="password" name="signupPasswordAgain" placeholder="… and again" />
                                 <span class="help-block"><?php echo $this->translate('The account will be accessable right away!'); ?></span>
                                 <button type="submit" class="btn btn-success"><?php echo $this->translate('… or sign up for free'); ?></button>
                             </fieldset>

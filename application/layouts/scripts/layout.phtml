@@ -42,31 +42,31 @@
                         </div>
                         <div id="collapseSettingsOne" class="accordion-body collapse in">
                             <div class="accordion-inner">
-                                <form class="form-horizontal">
+                                <div class="form-horizontal">
                                     <div class="control-group">
-                                        <label class="control-label" for="settingsLanguage"><?php echo $this->translate('Language'); ?></label>
+                                        <label class="control-label" for="language"><?php echo $this->translate('Language'); ?></label>
                                         <div class="controls">
-                                            <select name="settingsLanguage">
+                                            <select name="language">
                                                 <option value="en-us" selected><?php echo $this->translate('English'); ?></option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="control-group">
-                                        <label class="control-label" for="settingsPassword"><?php echo $this->translate('Password'); ?></label>
+                                        <label class="control-label" for="password"><?php echo $this->translate('Password'); ?></label>
                                         <div class="controls">
-                                            <input type="password" name="settingsPassword" placeholder="New password">
+                                            <input type="password" name="password" placeholder="New password">
                                         </div>
                                     </div>
                                     <div class="control-group">
-                                        <label class="control-label" for="settingsPasswordAgain"><?php echo $this->translate('Password'); ?></label>
+                                        <label class="control-label" for="passwordAgain"><?php echo $this->translate('Password'); ?></label>
                                         <div class="controls">
-                                            <input type="password" name="settingsPasswordAgain" placeholder="… and again.">
+                                            <input type="password" name="passwordAgain" placeholder="… and again.">
                                         </div>
                                     </div>
                                     <div class="form-actions">
-                                        <button type="submit" class="btn btn-success"><?php echo $this->translate('Update account'); ?></button>
+                                        <button type="button" class="btn btn-success"><?php echo $this->translate('Update account'); ?></button>
                                     </div>
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -76,17 +76,17 @@
                         </div>
                         <div id="collapseSettingsTwo" class="accordion-body collapse">
                             <div class="accordion-inner">
-                                <form class="form-horizontal">
+                                <div class="form-horizontal">
                                     <div class="control-group">
-                                        <label class="control-label" for="settingsPassword"><?php echo $this->translate('Password to confirm'); ?></label>
+                                        <label class="control-label" for="password"><?php echo $this->translate('Password to confirm'); ?></label>
                                         <div class="controls">
-                                            <input type="password" name="settingsPassword" placeholder="You account password">
+                                            <input type="password" name="password" placeholder="You account password">
                                         </div>
                                     </div>
                                     <div class="form-actions">
-                                        <button type="submit" class="btn btn-danger"><?php echo $this->translate('Remove my account'); ?></button>
+                                        <button type="button" class="btn btn-danger"><?php echo $this->translate('Remove my account'); ?></button>
                                     </div>
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -102,9 +102,15 @@
                 <h3><?php echo $this->translate('Give us some feedback'); ?> <i class="icon icon-heart"></i></h3>
             </div>
             <div class="modal-body">
+<?php if( $this->feedbackError ): ?>
+                <div class="alert alert-error">
+                    <strong><?php echo $this->translate('Warning'); ?>!</strong> <?php echo $this->humanReadableError; ?>
+                </div>
+<?php endif; ?>
                 <form method="POST">
                     <fieldset>
-                        <input type="text" name="subject" value="<?php echo $this->feedbackSubject; ?>" placeholder="Short and descriptive subject" class="span6">
+                        <input type="hidden" name="type" value="feedback" />
+                        <input type="text" name="subject" value="<?php echo $this->feedbackSubject; ?>" placeholder="Short and descriptive subject" class="span6" />
                         <textarea name="message" rows="10" class="span6"><?php echo $this->feedbackTextarea; ?></textarea>
                         <span class="help-block"><?php echo $this->translate('Your feedback is important for us to improve. Please let us know what\'s good and what\'s missing.'); ?></span>
                     </fieldset>
@@ -112,7 +118,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn" data-dismiss="modal"><?php echo $this->translate('Close'); ?></button>
-                <button class="btn btn-success"><?php echo $this->translate('Send feedback'); ?></button>
+                <button onclick="$(this).parent().parent().find('form').submit();" class="btn btn-success"><?php echo $this->translate('Send feedback'); ?></button>
             </div>
         </div>
         <div id="modalHelp" class="modal fade hide">
@@ -175,7 +181,7 @@
         $(document).ready(function() {
             $('#search').typeahead({
                 'source': function(query, process) {
-                    $.get('/index/query/', {q:query}, function(data) {
+                    $.get('<?php echo $this->baseUrl(); ?>/index/query/', {q:query}, function(data) {
                         return process(data);
                     });
                 },
@@ -183,6 +189,47 @@
                     window.location = '<?php echo $this->baseUrl(); ?>/index/show/directory/' + item;
                 }
             });
+            $('#collapseSettingsOne').find('button').click(function() {
+                var button = this;
+                $(button).parent().parent().parent().find('div.alert').remove();
+                $.get('<?php echo $this->baseUrl(); ?>/index/ajaxupdatesettings',
+                {
+                    language: $(this).parent().parent().find('div.control-group select').val(),
+                    password: $(this).parent().parent().find('div.control-group input[name=password]').val(),
+                    passwordAgain: $(this).parent().parent().find('div.control-group input[name=passwordAgain]').val()
+                }, function(data) {
+                    if( typeof data != 'object' ) {
+                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>Failure!</strong> Something went wrong</div>');
+                        return;
+                    }
+                    if( data.error ) {
+                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.exclaim + '!</strong> ' + data.humanReadable + '</div>');
+                    }else{
+                        $(button).parent().parent().parent().prepend('<div class="alert alert-success"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.exclaim + '!</strong> ' + data.humanReadable + '</div>');
+                    }
+                });
+            });
+            $('#collapseSettingsTwo').find('button').click(function() {
+                var button = this;
+                $(button).parent().parent().parent().find('div.alert').remove();
+                $.get('<?php echo $this->baseUrl(); ?>/index/ajaxremoveaccount',
+                {
+                    password: $(this).parent().parent().find('div.control-group input[name=password]').val()
+                }, function(data) {
+                    if( typeof data != 'object' ) {
+                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>Failure!</strong> Something went wrong</div>');
+                        return;
+                    }
+                    if( data.error ) {
+                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.exclaim + '!</strong> ' + data.humanReadable + '</div>');
+                    }else{
+                        window.location = '<?php echo $this->baseUrl(); ?>/';
+                    }
+                });
+            });
+<?php if( $this->feedbackError ): ?>
+            $('#modalFeedback').modal('show');
+<?php endif; ?>
         });
     </script>
 </body>

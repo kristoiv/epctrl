@@ -66,9 +66,9 @@ class IndexController extends Zend_Controller_Action
 
             }else if( $type == 'signup' ) {
 
-                $email = $this->view->signupEmail = $this->_getParam('email', '');
-                $password = $this->_getParam('password', '');
-                $passwordAgain = $this->_getParam('passwordAgain', '');
+                $email = $this->view->signupEmail = $this->_getParam('signupEmail', '');
+                $password = $this->_getParam('signupPassword', '');
+                $passwordAgain = $this->_getParam('signupPasswordAgain', '');
 
                 if( $password != $passwordAgain ) {
                     $this->view->signupError = true;
@@ -90,7 +90,7 @@ class IndexController extends Zend_Controller_Action
                     return;
                 }
 
-                $passwordHash = new PasswordHash(8, false);
+                $passwordHash = new PasswordHash($config->portal->password->iteration_count, $config->portal->password->portable);
 
                 $user_id = $userTable->insert(array(
                     'email' => $email,
@@ -129,6 +129,36 @@ class IndexController extends Zend_Controller_Action
         // Get favourites
         $favouriteTable = new Zend_Db_Table('Favourite');
         $favourites = $this->view->favourites = $favouriteTable->fetchAll( $favouriteTable->select()->where('user_id = ?', $this->_user->id)->order('directory ASC') );
+
+        if( $this->getRequest()->isPost() ) {
+
+            $type = $this->_getParam('type', '');
+
+            if( $type == 'feedback' ) {
+
+                $subject = trim($this->_getParam('subject', ''));
+                $message = trim($this->_getParam('message', ''));
+
+                if( $subject == '' && $message == '' ) {
+                    $this->view->feedbackError = true;
+                    $this->view->humanReadableError = $this->view->translate('Please write a message before you try to send it.');
+                    return;
+                }
+
+                $to = Zend_Mail::getDefaultFrom();
+
+                $mail = new Zend_Mail('UTF-8');
+                $mail->setFrom('kristoffer.a.iversen@gmail.com', 'EpCtrl.com');
+                $mail->addTo($to['email'], $to['name']);
+                $mail->setReplyTo($this->_user->email);
+                $mail->setSubject('EpCtrl.com – ' . $subject);
+                $mail->setBodyText($message);
+                $mail->send();
+
+                return $this->_redirect('/');
+
+            }else throw new Exception('Invalid post type');
+        }
     }
 
     public function showAction()
@@ -264,6 +294,94 @@ class IndexController extends Zend_Controller_Action
         $viewTable->delete( $viewTable->getAdapter()->quoteInto('user_id = ?', $this->_user->id) . $viewTable->getAdapter()->quoteInto(' AND directory = ?', $directory) );
 
         return $this->_redirect('/index/show/directory/' . $directory);
+    }
+
+    public function ajaxupdatesettingsAction()
+    {
+        header('Content-type: application/json');
+
+        $config = $this->_config;
+
+        $language = strtolower($this->_getParam('language', 'en-us'));
+        $password = trim($this->_getParam('password', ''));
+        $passwordAgain = trim($this->_getParam('passwordAgain', ''));
+
+        if( $password != '' && $password != $passwordAgain ) die(json_encode(array('error' => true, 'exclaim' => $this->view->translate('Failure'), 'humanReadable' => $this->view->translate('Passwords did not match, please try again.'))));
+
+        $languages = array();
+        foreach( scandir(APPLICATION_PATH . '/translations/') as $lang ) {
+            if( !is_file(APPLICATION_PATH . '/translations/' . $lang) ) continue;
+            $languages[] = strtok($lang, '.');
+        }
+
+        if( !in_array($language, $languages) ) die(json_encode(array('error' => true, 'exclaim' => $this->view->translate('Failure'), 'humanReadable' => $this->view->translate('No such language.'))));
+
+        $user = $this->_user;
+
+        // Reconnect offline row
+        $user->setTable(new Zend_Db_Table('User'));
+
+        $user->language = $language;
+        
+        if( $password != '' ) {
+            $passwordHash = new PasswordHash($config->portal->password->iteration_count, $config->portal->password->portable);
+            $user->password = $passwordHash->HashPassword($password);
+        }
+
+        $user->save();
+
+        die(json_encode(array('success' => true, 'exclaim' => $this->view->translate('Success'), 'humanReadable' => $this->view->translate('Account updated.'))));
+    }
+
+    public function ajaxremoveaccountAction()
+    {
+        header('Content-type: application/json');
+
+        $user = $this->_user;
+
+        $config = $this->_config;
+        $password = trim($this->_getParam('password', ''));
+
+        $passwordHash = new PasswordHash($config->portal->password->iteration_count, $config->portal->password->portable);
+        if( !$passwordHash->CheckPassword($password, $user->password) ) die(json_encode(array('error' => true, 'exclaim' => $this->view->translate('Failure'), 'humanReadable' => $this->view->translate('Wrong password, couldn\'t remove user.'))));
+
+        $userTable = new Zend_Db_Table('User');
+        $adapter = $userTable->getAdapter();
+
+        $adapter->beginTransaction();
+
+        try {
+
+            // Reconnect offline row
+            $user->setTable($userTable);
+
+            // Remove all the users favourites
+            $favouriteTable = new Zend_Db_Table('Favourite');
+            $favouriteTable->delete( $adapter->quoteInto('user_id = ?', $user->id) );
+
+            // Remove all the logged logins
+            $loginTable = new Zend_Db_Table('Login');
+            $loginTable->delete( $adapter->quoteInto('user_id = ?', $user->id) );
+
+            // Remove all the episodes marked as viewed by user
+            $viewTable = new Zend_Db_Table('View');
+            $viewTable->delete( $adapter->quoteInto('user_id = ?', $user->id) );
+
+            // Remove user
+            $user->delete();
+
+            // Commit changes to database and end transaction
+            $adapter->commit();
+
+        }catch( Exception $e ) {
+            // Something went wrong, abort and display error.
+            $adapter->rollBack();
+            die(json_encode(array('error' => true, 'exclaim' => $this->view->translate('Failure'), 'humanReadable' => $this->view->translate('Something went wrong, try again later.'))));
+        }
+
+        Zend_Session::namespaceUnset('Auth');
+
+        die(json_encode(array('success' => true, 'exclaim' => $this->view->translate('Success'), 'humanReadable' => $this->view->translate('Account successfully removed.'))));
     }
 
     public function queryAction()
