@@ -1,0 +1,29 @@
+        <ul class="breadcrumb">
+            <li class="active"><?php echo $this->translate('Overview'); ?></li>
+        </ul>
+        <div class="row">
+            <div class="span8">
+                <h1><?php echo $this->translate('Overview'); ?></h1>
+            </div>
+            <div class="span4">
+                <ul class="nav nav-list affix-top" data-spy="affix" data-offset-top="70">
+                    <li class="nav-header"><?php echo $this->translate('Quick Search'); ?></li>
+                    <li><input type="text" id="search" data-provide="typeahead" autocomplete="off" class="input-medium search-query"></li>
+                    <li class="nav-header"><?php echo $this->translate('Favourites'); ?></li>
+<?php if( count($this->favourites) == 0 ): ?>
+                    <div class="alert">
+                        <strong><?php echo $this->translate('Warning'); ?>!</strong> <?php echo $this->translate('You have no favourites yet! Why not add some?'); ?>
+                    </div>
+<?php endif; ?>
+<?php foreach( $this->favourites as $favourite ): ?>
+                    <li><a href="/index/show/directory/<?php echo $favourite->directory; ?>"><i class="icon"></i> <?php echo $this->index[$favourite->directory]['title']; ?></a></li>
+<?php endforeach; ?>
+                    <li class="nav-header"><?php echo $this->translate('Account'); ?></li>
+                    <li><a href="#modalSettings" data-toggle="modal"><i class="icon icon-user"></i> <?php echo $this->translate('Settings'); ?></a></li>
+                    <li><a href="<?php echo $this->baseUrl(); ?>/index/signout"><i class="icon icon-off"></i> <?php echo $this->translate('Sign out'); ?></a></li>
+                    <li class="nav-header"><?php echo $this->translate('Other'); ?></li>
+                    <li><a href="#modalFeedback" data-toggle="modal"><i class="icon icon-heart"></i> <?php echo $this->translate('Give feedback or suggestions'); ?></a></li>
+                    <li><a href="#modalHelp" data-toggle="modal"><i class="icon icon-question-sign"></i> <?php echo $this->translate('Get some help'); ?></a></li>
+                </ul>
+            </div>
+        </div>

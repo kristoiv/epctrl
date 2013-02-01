@@ -1,0 +1,4 @@
+.*.swp
+cache/*
+phinx.yml
+application/configs/application.ini

@@ -1,0 +1,46 @@
+        <ul class="breadcrumb">
+            <li class="active"><?php echo $this->translate('Sign in'); ?></li>
+        </ul>
+        <div class="row">
+            <div class="span8">
+                <h1><?php echo $this->title; ?></h1>
+            </div>
+            <div class="span4">
+                <ul class="nav nav-list">
+                    <li class="nav-header"><?php echo $this->translate('Sign in'); ?></li>
+                    <li>
+<?php if( $this->signinError ): ?>
+                        <div class="alert alert-danger">
+                            <strong><?php echo $this->translate('Warning'); ?>!</strong> <?php echo $this->humanReadableError; ?>
+                        </div>
+<?php endif; ?>
+                        <form method="POST">
+                            <fieldset>
+                                <input type="hidden" name="type" value="signin" />
+                                <input type="text" name="email" value="<?php echo $this->email; ?>" placeholder="Your email" />
+                                <input type="password" name="password" placeholder="Your password" />
+                                <button type="submit" class="btn btn-success"><?php echo $this->translate('Sign in'); ?></button>
+                            </fieldset>
+                        </form>
+                    </li>
+                    <li class="nav-header"><?php echo $this->translate('Sign up'); ?></li>
+                    <li>
+<?php if( $this->signupError ): ?>
+                        <div class="alert alert-danger">
+                            <strong><?php echo $this->translate('Warning'); ?>!</strong> <?php echo $this->humanReadableError; ?>
+                        </div>
+<?php endif; ?>
+                        <form method="POST">
+                            <fieldset>
+                                <input type="hidden" name="type" value="signup" />
+                                <input type="text" name="email" value="<?php echo $this->signupEmail; ?>" placeholder="Your email" />
+                                <input type="password" name="password" placeholder="Your password" />
+                                <input type="password" name="passwordAgain" placeholder="… and again" />
+                                <span class="help-block"><?php echo $this->translate('The account will be accessable right away!'); ?></span>
+                                <button type="submit" class="btn btn-success"><?php echo $this->translate('… or sign up for free'); ?></button>
+                            </fieldset>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>

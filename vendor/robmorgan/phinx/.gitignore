@@ -1,0 +1,14 @@
+build
+*.tgz
+*.phar
+composer.phar
+tests/log
+.DS_Store
+.buildpath
+.project
+.settings
+dist
+tests/TestConfiguration.php
+docs/_build
+vendor
+migrations

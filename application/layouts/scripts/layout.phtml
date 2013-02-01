@@ -1,0 +1,189 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Epguides</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 60px 20px;
+        }
+        .hero-unit {
+            padding: 30px;
+        }
+        footer {
+            text-align:center;
+        }
+        .affix-top {
+            top: auto;
+        }
+        .affix {
+            top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+<?php echo $this->layout()->content; ?>
+        <hr />
+        <footer>
+            <p>© Kopibeskyttet av Kristoffer A. Iversen 2013. Alle rettigheter reserverte.</p>
+        </footer>
+        <div id="modalSettings" class="modal fade hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3><?php echo $this->translate('Your user settings'); ?> <i class="icon icon-heart"></i></h3>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="accordionSettings">
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionSettings" href="#collapseSettingsOne"><?php echo $this->translate('Account details'); ?></a>
+                        </div>
+                        <div id="collapseSettingsOne" class="accordion-body collapse in">
+                            <div class="accordion-inner">
+                                <form class="form-horizontal">
+                                    <div class="control-group">
+                                        <label class="control-label" for="settingsLanguage"><?php echo $this->translate('Language'); ?></label>
+                                        <div class="controls">
+                                            <select name="settingsLanguage">
+                                                <option value="en-us" selected><?php echo $this->translate('English'); ?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label" for="settingsPassword"><?php echo $this->translate('Password'); ?></label>
+                                        <div class="controls">
+                                            <input type="password" name="settingsPassword" placeholder="New password">
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label" for="settingsPasswordAgain"><?php echo $this->translate('Password'); ?></label>
+                                        <div class="controls">
+                                            <input type="password" name="settingsPasswordAgain" placeholder="… and again.">
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-success"><?php echo $this->translate('Update account'); ?></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionSettings" href="#collapseSettingsTwo"><?php echo $this->translate('Remove account'); ?></a>
+                        </div>
+                        <div id="collapseSettingsTwo" class="accordion-body collapse">
+                            <div class="accordion-inner">
+                                <form class="form-horizontal">
+                                    <div class="control-group">
+                                        <label class="control-label" for="settingsPassword"><?php echo $this->translate('Password to confirm'); ?></label>
+                                        <div class="controls">
+                                            <input type="password" name="settingsPassword" placeholder="You account password">
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-danger"><?php echo $this->translate('Remove my account'); ?></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal"><?php echo $this->translate('Close'); ?></button>
+            </div>
+        </div>
+        <div id="modalFeedback" class="modal fade hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3><?php echo $this->translate('Give us some feedback'); ?> <i class="icon icon-heart"></i></h3>
+            </div>
+            <div class="modal-body">
+                <form method="POST">
+                    <fieldset>
+                        <input type="text" name="subject" value="<?php echo $this->feedbackSubject; ?>" placeholder="Short and descriptive subject" class="span6">
+                        <textarea name="message" rows="10" class="span6"><?php echo $this->feedbackTextarea; ?></textarea>
+                        <span class="help-block"><?php echo $this->translate('Your feedback is important for us to improve. Please let us know what\'s good and what\'s missing.'); ?></span>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal"><?php echo $this->translate('Close'); ?></button>
+                <button class="btn btn-success"><?php echo $this->translate('Send feedback'); ?></button>
+            </div>
+        </div>
+        <div id="modalHelp" class="modal fade hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3><?php echo $this->translate('Need some help?'); ?> <i class="icon icon-exclamation-sign"></i></h3>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="accordionHelp">
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionHelp" href="#collapseOne"><?php echo $this->translate('I found a bug, what do I do?'); ?></a>
+                        </div>
+                        <div id="collapseOne" class="accordion-body collapse in">
+                            <div class="accordion-inner">
+                                <p><?php echo $this->translate('If you find a bug it\'s important that you let us know so we can fix it! Please use the Feedback form, and mark the subject with «Bug report».'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionHelp" href="#collapseTwo"><?php echo $this->translate('I have an idea for a new feature, to whom do I speak?'); ?></a>
+                        </div>
+                        <div id="collapseTwo" class="accordion-body collapse">
+                            <div class="accordion-inner">
+                                <p><?php echo $this->translate('If you get a good idea for a new feature you\'d like to see, please let ut know. You could egihter do that by using the feedback form (mark the subject with «Feature idea»), or if you are a developer you can fork (this prosject is opensource and available at github) or contribute to the project.'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionHelp" href="#collapseThree"><?php echo $this->translate('How can I contribute?'); ?></a>
+                        </div>
+                        <div id="collapseThree" class="accordion-body collapse">
+                            <div class="accordion-inner">
+                                <p><?php echo $this->translate('I welcome you to send us a pull-request if you fix bugs, improve on features or come up with something new :-D. This project is available at github as a open source project. If you want to contribute in some other way, please let me know using the Feedback form.'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-group">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionHelp" href="#collapseFour"><?php echo $this->translate('I have some other problem!'); ?></a>
+                        </div>
+                        <div id="collapseFour" class="accordion-body collapse">
+                            <div class="accordion-inner">
+                                <p><?php echo $this->translate('If you have some other problem I welcome you to let us know by using the Feedback form and we\'ll try to get back to you as soon as possible at the email-address of your account.'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal"><?php echo $this->translate('Close'); ?></button>
+            </div>
+        </div>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#search').typeahead({
+                'source': function(query, process) {
+                    $.get('/index/query/', {q:query}, function(data) {
+                        return process(data);
+                    });
+                },
+                'updater': function(item) {
+                    window.location = '<?php echo $this->baseUrl(); ?>/index/show/directory/' + item;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
