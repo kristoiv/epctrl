@@ -5,6 +5,11 @@
             <div class="span8">
                 <h1><?php echo $this->translate('Overview'); ?></h1>
                 <h4><?php echo $this->translate('Next available episodes'); ?>:</h4>
+<?php if( count($this->availableEpisodes) == 0 ): ?>
+                <div class="alert">
+                    <strong><?php echo $this->translate('Warning'); ?>!</strong> <?php echo $this->translate('You have no favourites yet! Why not add some?'); ?>
+                </div>
+<?php else: ?>
                 <table class="table table-condensed table-striped">
                     <thead>
                         <tr>
@@ -25,6 +30,7 @@
 <?php endforeach; ?>
                     </tbody>
                 </table>
+<?php endif; ?>
             </div>
             <div class="span4">
                 <ul class="nav nav-list affix-top" data-spy="affix" data-offset-top="70">
