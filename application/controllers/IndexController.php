@@ -539,7 +539,7 @@ class IndexController extends Zend_Controller_Action
             if( !isset($episode['aired']) ) continue;
             if( !$episode['aired'] && !$episode['today'] ) {
                 $time = strtotime($episode['airdate']);
-                $episode['daysUntilAired'] = floor(($time-time())/60/60/24);
+                $episode['daysUntilAired'] = floor(($time-time())/60/60/24) +1;
             }
         }
 
