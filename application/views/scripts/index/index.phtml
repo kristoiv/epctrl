@@ -25,7 +25,7 @@
                             <td><a href="<?php echo $this->baseUrl(); ?>/index/show/directory/<?php echo $directory; ?>"><?php echo $this->index[$directory]['title']; ?></a></td>
                             <td><?php echo $episode['season']; ?></td>
                             <td><?php echo $episode['episode']; ?></td>
-                            <td><?php echo ($episode['aired'] ? '<a href="' . $this->baseUrl() . '/index/markviewed/directory/' . $directory . '/number/' . $episode['number'] . '"><span class="label label-success">' . $this->translate('Available') . '</span></a>' : ($episode['today'] ? '<span class="label label-info">' . $this->translate('Today') . '</span>' : '<span class="label label-inverse">' . $episode['daysUntilAired'] . ' ' . $this->translate('days left') . '</span>')); ?></td>
+                            <td><?php if( !isset($episode['aired']) ) echo '<span class="label label-inverse">' . $this->translate('Unaired') . '</span>'; else echo ($episode['aired'] ? '<a href="' . $this->baseUrl() . '/index/markviewed/directory/' . $directory . '/number/' . $episode['number'] . '"><span class="label label-success">' . $this->translate('Available') . '</span></a>' : ($episode['today'] ? '<span class="label label-info">' . $this->translate('Today') . '</span>' : '<span class="label label-inverse">' . $episode['daysUntilAired'] . ' ' . $this->translate('days left') . '</span>')); ?></td>
                         </tr>
 <?php endforeach; ?>
                     </tbody>
