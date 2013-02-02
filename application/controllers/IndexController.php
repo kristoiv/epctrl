@@ -555,8 +555,16 @@ class IndexController extends Zend_Controller_Action
         foreach( $rowset as $view ) $viewed[] = $view['number'];
 
         $episodes = $this->_getEpisodes($directory);
+        $potensialNext = array();
 
         foreach( $episodes as $episode ) if( !in_array($episode['number'], $viewed) ) {
+            if( isset($episode['aired']) && $episode['aired'] ) return $episode;
+            $potensialNext[] = $episode;
+        }
+
+        if( count($potensialNext) != 0 ) {
+            $episode = null;
+            foreach( $potensialNext as $ep ) if( $episode == null || (isset($ep['daysUntilAired']) && !isset($episode['daysUntilAired'])) || (isset($episode['daysUntilAired']) && isset($ep['daysUntilAired'])) && ($episode['daysUntilAired'] > $ep['daysUntilAired']) ) $episode = $ep;
             return $episode;
         }
 
