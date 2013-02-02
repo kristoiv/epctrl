@@ -15,6 +15,8 @@ class IndexController extends Zend_Controller_Action
         $this->_config = $config = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', APPLICATION_ENV);
         $this->_cache  = $cache  = Zend_Cache::factory('Core', 'File', $config->portal->cache->frontend->toArray(), $config->portal->cache->backend->toArray());
 
+        $this->view->title = $config->portal->title;
+
         // Load tv-series index from (and possibly into) cache.
         $index = $this->_index = $this->view->index = $this->_getIndex();
 
@@ -27,7 +29,6 @@ class IndexController extends Zend_Controller_Action
     public function signinAction()
     {
         $config = $this->_config;
-        $this->view->title = $config->portal->title;
 
         if( $this->getRequest()->isPost() ) {
 

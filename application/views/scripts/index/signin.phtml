@@ -4,6 +4,26 @@
         <div class="row">
             <div class="span8">
                 <h1><?php echo $this->title; ?></h1>
+                <div id="myCarousel" class="carousel slide">
+                    <div class="carousel-inner">
+                        <div class="active item">
+                            <img src="<?php echo $this->baseUrl(); ?>/img/overview.png" />
+                            <div class="carousel-caption">
+                                <h4><?php echo $this->translate('EpCtrl.com – over 6000 tv-series'); ?></h4>
+                                <p><?php echo $this->translate('EpCtrl has episode lists for over 6000 tv-series.'); ?></p>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <img src="<?php echo $this->baseUrl(); ?>/img/show.png" />
+                            <div class="carousel-caption">
+                                <h4><?php echo $this->translate('EpCtrl.com – control over next available episodes'); ?></h4>
+                                <p><?php echo $this->translate('Gives you control over what episodes you\'ve already watched.'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+                    <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+                </div>
             </div>
             <div class="span4">
                 <ul class="nav nav-list">
