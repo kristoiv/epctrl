@@ -8,6 +8,7 @@ Episode Control is a simple service based on epguides.com's open database of tv-
 If you'd like to fork this project there are a few steps to making it operational.
 * You need a working **LAMP-stack** (wmap / mamp might work too).
 * You need a empty **database** + user with **all privileges**.
+* You need a **email account** to support the feedback feature.
 
 ## Getting started
 * Clone this repository
