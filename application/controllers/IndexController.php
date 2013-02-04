@@ -1,7 +1,5 @@
 <?php
 
-require_once(APPLICATION_PATH . '/../library/Phpass/PasswordHash.php');
-
 class IndexController extends Zend_Controller_Action
 {
     protected $_config;
@@ -18,7 +16,7 @@ class IndexController extends Zend_Controller_Action
         $this->view->title = $config->portal->title;
 
         // Load tv-series index from (and possibly into) cache.
-        $index = $this->_index = $this->view->index = $this->_getIndex();
+        $index = $this->_index = new Model_Index($config, $cache);
 
         $auth = new Zend_Session_Namespace('Auth');
         if( !$auth->isAuthenticated ) return $this->_forward('signin');
@@ -39,31 +37,20 @@ class IndexController extends Zend_Controller_Action
                 $email = $this->_getParam('email', '');
                 $password = $this->_getParam('password', '');
 
-                $userTable = new Zend_Db_Table('User');
-                $user = $userTable->fetchRow( $userTable->getAdapter()->quoteInto('email = ?', $email) );
+                $userTable = new Model_DbTable_Users();
 
-                $passwordHash = new PasswordHash(8, false);
-
-                if( !$user || !$passwordHash->CheckPassword($password, $user->password) ) {
+                if( !($user = $userTable->login($email, $password)) ) {
                     $this->view->signinError = true;
                     $this->view->humanReadableError = $this->view->translate('Invalid credentials, please try again.');
                     return;
                 }
-
-                // Log the login
-                $loginTable = new Zend_Db_Table('Login');
-                $loginTable->insert(array(
-                    'user_id'   => $user->id,
-                    'time'      => time(),
-                    'ip'        => $_SERVER['REMOTE_ADDR'],
-                ));
 
                 $auth = new Zend_Session_Namespace('Auth');
                 $auth->setExpirationSeconds($config->portal->login->expire);
                 $auth->isAuthenticated = true;
                 $auth->user = $user;
 
-                return $this->_redirect('/');
+                return $this->_redirect( $this->getRequest()->getServer('HTTP_REFERER') );
 
             }else if( $type == 'signup' ) {
 
@@ -127,75 +114,18 @@ class IndexController extends Zend_Controller_Action
 
     public function indexAction()
     {
+        $user = $this->_user;
+
         // Get favourites
-        $favouriteTable = new Zend_Db_Table('Favourite');
-        $favourites = $this->view->favourites = $favouriteTable->fetchAll( $favouriteTable->select()->where('user_id = ?', $this->_user->id)->order('directory ASC') );
+        $favouriteTable = new Model_DbTable_Favourites();
+        $favourites = $this->view->favourites = $favouriteTable->getFavourites($user, $this->_index);
 
         $availableEpisodes = array();
         foreach( $favourites as $favourite ) {
-            $episode = $this->_getNextAvailableEpisode($favourite->directory);
-            if( $episode != null ) $availableEpisodes[$favourite->directory] = $episode;
+            $episode = $favourite->getNextAvailableEpisode($user);
+            if( $episode != null ) $availableEpisodes[$favourite->getDirectory()] = $episode;
         }
-            //print_r($availableEpisodes);die();
         $this->view->availableEpisodes = $availableEpisodes;
-
-        if( $this->getRequest()->isPost() ) {
-
-            $type = $this->_getParam('type', '');
-
-            if( $type == 'feedback' ) {
-
-                $subject = trim($this->_getParam('subject', ''));
-                $message = trim($this->_getParam('message', ''));
-
-                if( $subject == '' && $message == '' ) {
-                    $this->view->feedbackError = true;
-                    $this->view->humanReadableError = $this->view->translate('Please write a message before you try to send it.');
-                    return;
-                }
-
-                $to = Zend_Mail::getDefaultFrom();
-
-                $mail = new Zend_Mail('UTF-8');
-                $mail->setFrom('kristoffer.a.iversen@gmail.com', 'EpCtrl.com');
-                $mail->addTo($to['email'], $to['name']);
-                $mail->setReplyTo($this->_user->email);
-                $mail->setSubject('EpCtrl.com – ' . $subject);
-                $mail->setBodyText($message);
-                $mail->send();
-
-                return $this->_redirect('/');
-
-            }else throw new Exception('Invalid post type');
-        }
-    }
-
-    public function showAction()
-    {
-        $directory = $this->_getParam('directory', false);
-        if( $directory === false || !isset($this->_index[$directory]) ) throw new Exception('Directory not found in index');
-
-        $show     = $this->view->show     = new Zend_Config($this->_index[$directory]);
-        $episodes = $this->view->episodes = new Zend_Config($this->_getEpisodes($directory));
-
-        $next = $this->_getNextAvailableEpisode($directory);
-        $next     = $this->view->next     = (is_null($next) ? null : new Zend_Config($next));
-
-        // Get favourites
-        $favouriteTable = new Zend_Db_Table('Favourite');
-        $favourites = $this->view->favourites = $favouriteTable->fetchAll( $favouriteTable->select()->where('user_id = ?', $this->_user->id)->order('directory ASC') );
-        $this->view->favourited = false;
-        foreach( $favourites as $favourite ) if( $favourite->directory == $show->directory ) {
-            $this->view->favourited = true;
-            break;
-        }
-
-        // Get list of viewed episodes
-        $viewTable = new Zend_Db_Table('View');
-        $rowset = $viewTable->fetchAll( $viewTable->select()->from('View', 'number')->where('user_id = ?', $this->_user->id)->where('directory = ?', $directory) );
-        $viewed = array();
-        foreach( $rowset as $view ) $viewed[] = $view['number'];
-        $this->view->viewed = $viewed;
 
         if( $this->getRequest()->isPost() ) {
 
@@ -452,123 +382,6 @@ class IndexController extends Zend_Controller_Action
         header('Content-type: application/json');
 
         die(json_encode($results));
-    }
-
-    protected function _getIndex()
-    {
-        $config = $this->_config;
-        $cache = $this->_cache;
-
-        if( ($index = $cache->load('index')) === false ) {
-            
-            $csv = trim(file_get_contents($config->portal->epguides->allshows));
-
-            $header = trim(substr($csv, 0, strpos($csv, PHP_EOL)));
-            $csv = substr($csv, strpos($csv, PHP_EOL)+1);
-            
-            $keys = explode(',', $header);
-
-            $index = array();
-
-            foreach( explode(PHP_EOL, $csv) as $line ) {
-                
-                $array = str_getcsv($line, ',', '"', '\\');
-                $show = array();
-
-                if( count($array) == count($keys) ) for($i = 0; $i < count($keys); $i++) $show[$keys[$i]] = $array[$i];
-
-                $index[$show['directory']] = $show;
-
-            }
-
-            $cache->save($index, 'index');
-
-        }
-
-        return $index;
-    }
-
-    protected function _getEpisodes($directory)
-    {
-        if( !isset($this->_index[$directory]) ) throw new Exception('No such series found in the index');
-        
-        $config = $this->_config;
-        $cache = $this->_cache;
-
-        //$cache->clean(Zend_Cache::CLEANING_MODE_ALL);
-        
-        if( ($episodes = $cache->load($directory)) === false ) {
-            
-            $csv = file_get_contents($config->portal->epguides->episodes . $this->_index[$directory]['tvrage']);
-            $csv = trim(substr($csv, strpos($csv, '<pre>')+5, strpos($csv, '</pre>')-5-strpos($csv, '<pre>')));
-
-            $header = trim(substr($csv, 0, strpos($csv, "\n")));
-            $csv = substr($csv, strpos($csv, "\n")+1);
-            
-            $keys = explode(',', $header);
-
-            $episodes = array();
-
-            foreach( explode(PHP_EOL, $csv) as $line ) {
-                
-                $array = str_getcsv($line, ',', '"', '\\');
-                $episode = array();
-
-                if( count($array) == count($keys) ) for($i = 0; $i < count($keys); $i++) $episode[$keys[$i]] = $array[$i];
-
-                $date = DateTime::createFromFormat('d/M/y', $episode['airdate']);
-                
-                if( $date != null ) {
-                    $episode['airdate'] = $date->format('Y-m-d') . ' 00:00:00';
-                    $episode['aired'] = $date->format('Y-m-d') <= date('Y-m-d');
-                    $episode['today'] = $date->format('Y-m-d') == date('Y-m-d');
-                }
-
-                $episode['special'] = $episode['special?'] != 'n';
-                unset($episode['special?']);
-
-                if( is_numeric($episode['number']) ) $episodes[$episode['number']] = $episode;
-
-            }
-
-            $cache->save($episodes, $directory);
-
-        }
-
-        foreach( $episodes as &$episode ) {
-            if( !isset($episode['aired']) ) continue;
-            if( !$episode['aired'] && !$episode['today'] ) {
-                $time = strtotime($episode['airdate']);
-                $episode['daysUntilAired'] = floor(($time-time())/60/60/24) +1;
-            }
-        }
-
-        return $episodes;
-    }
-
-    protected function _getNextAvailableEpisode($directory)
-    {
-        // Get list of viewed episodes
-        $viewTable = new Zend_Db_Table('View');
-        $rowset = $viewTable->fetchAll( $viewTable->select()->from('View', 'number')->where('user_id = ?', $this->_user->id)->where('directory = ?', $directory) );
-        $viewed = array();
-        foreach( $rowset as $view ) $viewed[] = $view['number'];
-
-        $episodes = $this->_getEpisodes($directory);
-        $potensialNext = array();
-
-        foreach( $episodes as $episode ) if( !in_array($episode['number'], $viewed) ) {
-            if( isset($episode['aired']) && $episode['aired'] ) return $episode;
-            $potensialNext[] = $episode;
-        }
-
-        if( count($potensialNext) != 0 ) {
-            $episode = null;
-            foreach( $potensialNext as $ep ) if( $episode == null || (isset($ep['daysUntilAired']) && !isset($episode['daysUntilAired'])) || (isset($episode['daysUntilAired']) && isset($ep['daysUntilAired'])) && ($episode['daysUntilAired'] > $ep['daysUntilAired']) ) $episode = $ep;
-            return $episode;
-        }
-
-        return null;
     }
 }
 

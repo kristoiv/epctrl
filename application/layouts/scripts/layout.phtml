@@ -179,16 +179,82 @@
     <script src="/js/bootstrap.min.js"></script>
     <script>
         $(document).ready(function() {
+
             $('#search').typeahead({
                 'source': function(query, process) {
-                    $.get('<?php echo $this->baseUrl(); ?>/index/query/', {q:query}, function(data) {
-                        return process(data);
+                    $.get('<?php echo $this->url(array('action' => 'search'), 'ajax'); ?>', {q:query}, function(data) {
+                        return process(data.parameters);
                     });
                 },
                 'updater': function(item) {
-                    window.location = '<?php echo $this->baseUrl(); ?>/index/show/directory/' + item;
+                    window.location = '<?php echo $this->url(array('directory' => ''), 'show'); ?>/' + item;
                 }
             });
+
+            var markAsViewed = function() {
+                var label = $(this).children('span');
+                $(label).removeClass('label-success').addClass('label-warning');
+                $(label).html('<?php echo $this->translate('Wait …'); ?>');
+                $.get('<?php echo $this->url(array('action' => 'markepisodeviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
+                    if( data.status == 200 ) {
+                        $(label).html('<?php echo $this->translate('Viewed'); ?>');
+                        $(label).parent().removeClass('markAsViewed').addClass('unmarkAsViewed');
+                        $(label).parent().unbind('click');
+                        $(label).parent().click(unmarkAsViewed);
+                    }
+                });
+            };
+
+            var unmarkAsViewed = function() {
+                var label = $(this).children('span');
+                $(label).html('<?php echo $this->translate('Wait …'); ?>');
+                $.get('<?php echo $this->url(array('action' => 'unmarkepisodeviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
+                    if( data.status == 200 ) {
+                        $(label).html('<?php echo $this->translate('Available'); ?>');
+                        $(label).removeClass('label-warning').addClass('label-success');
+                        $(label).parent().unbind('click');
+                        $(label).parent().click(markAsViewed);
+                    }
+                });
+            };
+
+            $('a.markAsViewed').click(markAsViewed);
+            $('a.unmarkAsViewed').click(unmarkAsViewed);
+
+            var markSeasonAsViewed = function() {
+                var label = $(this).children('span');
+                $(label).removeClass('label-success').addClass('label-warning');
+                $(label).html('<?php echo $this->translate('Wait …'); ?>');
+                $.get('<?php echo $this->url(array('action' => 'markseasonviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
+                    if( data.status == 200 ) {
+                        $(label).html('<?php echo $this->translate('Set none'); ?>');
+                        $(label).parent().removeClass('markSeasonAsViewed').addClass('unmarkSeasonAsViewed');
+                        $(label).parent().unbind('click');
+                        $(label).parent().click(unmarkSeasonAsViewed);
+                        $(label).parent().parent().parent().parent().parent().find('tbody a span.label').removeClass('label-success').addClass('label-warning').html('<?php echo $this->translate('Viewed'); ?>');
+                        $(label).parent().parent().parent().parent().parent().find('tbody a').unbind('click').click(unmarkAsViewed);
+                    }
+                });
+            };
+
+            var unmarkSeasonAsViewed = function() {
+                var label = $(this).children('span');
+                $(label).html('<?php echo $this->translate('Wait …'); ?>');
+                $.get('<?php echo $this->url(array('action' => 'unmarkseasonviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
+                    if( data.status == 200 ) {
+                        $(label).html('<?php echo $this->translate('Set all'); ?>');
+                        $(label).removeClass('label-warning').addClass('label-success');
+                        $(label).parent().unbind('click');
+                        $(label).parent().click(markSeasonAsViewed);
+                        $(label).parent().parent().parent().parent().parent().find('tbody a span.label').removeClass('label-warning').addClass('label-success').html('<?php echo $this->translate('Available'); ?>');
+                        $(label).parent().parent().parent().parent().parent().find('tbody a').unbind('click').click(markAsViewed);
+                    }
+                });
+            };
+
+            $('a.markSeasonAsViewed').click(markSeasonAsViewed);
+            $('a.unmarkSeasonAsViewed').click(unmarkSeasonAsViewed);
+
             $('#collapseSettingsOne').find('button').click(function() {
                 var button = this;
                 $(button).parent().parent().parent().find('div.alert').remove();
@@ -209,6 +275,7 @@
                     }
                 });
             });
+
             $('#collapseSettingsTwo').find('button').click(function() {
                 var button = this;
                 $(button).parent().parent().parent().find('div.alert').remove();
@@ -227,8 +294,10 @@
                     }
                 });
             });
+
 <?php if( $this->feedbackError ): ?>
             $('#modalFeedback').modal('show');
+
 <?php endif; ?>
         });
     </script>
