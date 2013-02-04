@@ -190,7 +190,7 @@
                 }
             });
 
-            $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a').click(function() {
+            $('#overviewTableNextAvailableEpisodes tbody tr').find('td:eq(3) a').click(function() {
                 var label = $(this).children('span');
                 if( $(label).hasClass('label-inverse') ) return;
                 if( $(label).hasClass('label-info') ) return;
@@ -198,13 +198,15 @@
                 $(label).html('<?php echo $this->translate('Wait …'); ?>');
                 $.get('<?php echo $this->url(array('action' => 'markepisodeviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
                     if( data.status == 200 ) {
-                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(0) a').html(data.parameters.showTitle);
-                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(1)').html(data.parameters.season);
-                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(2)').html(data.parameters.episode);
+                        $(label).parent().parent().parent().find('td:eq(0) a').html(data.parameters.showTitle);
+                        $(label).parent().parent().parent().find('td:eq(1)').html(data.parameters.season);
+                        $(label).parent().parent().parent().find('td:eq(2)').html(data.parameters.episode);
 
-                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a').data('number', data.parameters.number);
-                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
-                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a span').html(data.parameters.label);
+                        $(label).parent().parent().parent().find('td:eq(3) a').data('number', data.parameters.number);
+                        $(label).parent().parent().parent().find('td:eq(3) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
+                        $(label).parent().parent().parent().find('td:eq(3) a span').html(data.parameters.label);
+                    }else if( data.status == 204 ) {
+                        $(label).parent().parent().parent().remove();
                     }
                 });
             });
@@ -232,6 +234,8 @@
                         $(label).parent().removeClass('markAsViewed').addClass('unmarkAsViewed');
                         $(label).parent().unbind('click');
                         $(label).parent().click(unmarkAsViewed);
+                        $('#tableNextAvailable').hide();
+                        $('#tableNextAvailable').prev('h4').hide();
                     }
                 });
             };
@@ -252,6 +256,8 @@
                         $('#tableNextAvailable tbody tr td:eq(4) a').data('number', data.parameters.number);
                         $('#tableNextAvailable tbody tr td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
                         $('#tableNextAvailable tbody tr td:eq(4) a span').html(data.parameters.label);
+                        $('#tableNextAvailable').show();
+                        $('#tableNextAvailable').prev('h4').show();
                     }else if( data.status == 204 ) {
                         $(label).html('<?php echo $this->translate('Available'); ?>');
                         $(label).removeClass('label-warning').addClass('label-success');
@@ -283,6 +289,15 @@
                         $('#tableNextAvailable tbody tr td:eq(4) a').data('number', data.parameters.number);
                         $('#tableNextAvailable tbody tr td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
                         $('#tableNextAvailable tbody tr td:eq(4) a span').html(data.parameters.label);
+                    }else if( data.status == 204 ) {
+                        $(label).html('<?php echo $this->translate('Set none'); ?>');
+                        $(label).parent().removeClass('markSeasonAsViewed').addClass('unmarkSeasonAsViewed');
+                        $(label).parent().unbind('click');
+                        $(label).parent().click(unmarkSeasonAsViewed);
+                        $(label).parent().parent().parent().parent().parent().find('tbody a span.label-success').removeClass('label-success').addClass('label-warning').html('<?php echo $this->translate('Viewed'); ?>');
+                        $(label).parent().parent().parent().parent().parent().find('tbody a').unbind('click').click(unmarkAsViewed);
+                        $('#tableNextAvailable').hide();
+                        $('#tableNextAvailable').prev('h4').hide();
                     }
                 });
             };
@@ -305,6 +320,8 @@
                         $('#tableNextAvailable tbody tr td:eq(4) a').data('number', data.parameters.number);
                         $('#tableNextAvailable tbody tr td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
                         $('#tableNextAvailable tbody tr td:eq(4) a span').html(data.parameters.label);
+                        $('#tableNextAvailable').show();
+                        $('#tableNextAvailable').prev('h4').show();
                     }
                 });
             };
@@ -336,8 +353,8 @@
                         var number = $(label).parent().data('number');
                         $('#episode_' + number).find('td:eq(4) a span').html('<?php echo $this->translate('Viewed') ?>').removeClass('label-success').addClass('label-warning');
                         $('#episode_' + number).find('td:eq(4) a').unbind('click').click(unmarkAsViewed);
-                        $('#tableNextAvailable').prev('h4').remove();
-                        $('#tableNextAvailable').remove();
+                        $('#tableNextAvailable').hide();
+                        $('#tableNextAvailable').prev('h4').hide();
                     }
                 });
             };

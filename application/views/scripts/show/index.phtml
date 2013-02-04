@@ -1,13 +1,14 @@
         <ul class="breadcrumb">
+            <li class="active"><?php echo $this->title; ?> <span class="divider">/</span></li>
             <li><a href="<?php echo $this->url(array(), 'overview'); ?>"><?php echo $this->translate('Overview'); ?></a> <span class="divider">/</span></li>
             <li class="active"><?php echo $this->show->getTitle(); ?></li>
         </ul>
         <div class="row">
             <div class="span8">
                 <h1><?php echo $this->show->getTitle(); ?></h1>
-<?php if( !is_null($this->next) ): $episode = $this->next; $directory = $this->show->getDirectory(); ?>
-                <h4><?php echo $this->translate('Next available episode'); ?>:</h4>
-                <table id="tableNextAvailable" class="table table-hover table-condensed table-striped">
+<?php $episode = (isset($this->next) ? $this->next : null); $directory = $this->show->getDirectory(); ?>
+                <h4<?php if(is_null($episode)) echo ' class="hide"'; ?>><?php echo $this->translate('Next available episode'); ?>:</h4>
+                <table id="tableNextAvailable" class="table table-hover table-condensed table-striped<?php if(is_null($episode)) echo ' hide'; ?>">
                     <thead>
                         <tr>
                             <th style="width:30px;">#</th>
@@ -18,6 +19,15 @@
                         </tr>
                     </thead>
                     <tbody>
+<?php if( is_null($episode) ): ?>
+                        <tr>
+                            <td>></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><a data-directory="<?php echo $directory; ?>" data-number="" style="cursor:pointer;" class="markNextAvailableAsViewed"><span class="label label-success"><?php echo $this->translate('Available'); ?></span></a></td>
+                        </tr>
+<?php else: ?>
                         <tr>
                             <td><?php echo $episode->getNumber(); ?></td>
                             <td><?php echo $episode->getSeason()->getSeasonNumber(); ?></td>
@@ -33,9 +43,9 @@
                             <td><a data-directory="<?php echo $directory; ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markNextAvailableAsViewed"><span class="label label-inverse"><?php echo $episode->daysUntilAirdate() . ' ' . $this->translate('days left'); ?></span></a></td>
 <?php endif; ?>
                         </tr>
+<?php endif; ?>
                     </tbody>
                 </table>
-<?php endif; ?>
 <?php foreach( $this->show->getSeasonsReversed() as $season ): ?>
                 <h4><?php echo $this->translate('Season') . ' ' . $season->getSeasonNumber(); ?>:</h4>
                 <table class="table table-hover table-condensed table-striped">
