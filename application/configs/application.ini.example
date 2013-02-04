@@ -26,7 +26,21 @@ resources.mail.transport.password   = "example"
 resources.mail.defaultFrom.email    = "example@example.com"
 resources.mail.defaultFrom.name     = "EpCtrl.com"
 
+routes.overview.type = "Zend_Controller_Router_Route_Static"
+routes.overview.route = ""
+routes.overview.defaults.controller = index
+routes.overview.defaults.action = index
+routes.show.route = "show/:directory/*"
+routes.show.defaults.controller = show
+routes.show.defaults.action = index
+routes.actions.route = "actions/:action/:directory/*"
+routes.actions.defaults.controller = action
+routes.actions.defaults.action = index
+routes.ajax.route = "ajax/:action/*"
+routes.ajax.defaults.controller = ajax
+
 portal.title  = "EpCtrl.com"
+portal.copyright = "Epctrl.com 2013"
 portal.login.expire = 31536000
 portal.cache.frontend.lifetime = 31536000
 portal.cache.frontend.automatic_serialization = true

@@ -10,5 +10,13 @@ class Model_User extends Zend_Db_Table_Row_Abstract
         $passwordHash = new PasswordHash($config->portal->password->iteration_count, $config->portal->password->portable);
         return $passwordHash->CheckPassword($password, $this->password);
     }
+
+    public function setPassword($password)
+    {
+        $config = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', APPLICATION_ENV);
+        $passwordHash = new PasswordHash($config->portal->password->iteration_count, $config->portal->password->portable);
+        $this->password = $passwordHash->HashPassword($password);
+        $this->save();
+    }
 }
 

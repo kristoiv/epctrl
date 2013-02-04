@@ -4,6 +4,7 @@ class Model_Show
 {
     protected $_seasons;
 
+    protected $_user;
     protected $_config;
     protected $_cache;
 
@@ -11,10 +12,13 @@ class Model_Show
     protected $_directory;
     protected $_title;
 
-    public function __construct($directory, $details, $config, $cache)
+    protected $_isPrepared;
+
+    public function __construct($directory, $details, Model_User $user, $config, $cache)
     {
         $this->_seasons = new Zend_Config(array(), true);
 
+        $this->_user = $user;
         $this->_config = $config;
         $this->_cache = $cache;
 
@@ -22,6 +26,8 @@ class Model_Show
 
         $this->_tvrage = $details->tvrage;
         $this->_title = $details->title;
+
+        $this->_isPrepared = false;
     }
 
     public function getTvrage()
@@ -89,23 +95,46 @@ class Model_Show
 
         throw new Exception('No such episode in this show');
     }
-    
-    public function markShowAsViewed(Model_User $user)
+
+    public function favourite()
     {
-        // Make sure show is loaded
-        $this->_prepare();
-    }
-    
-    public function unmarkShowAsViewed(Model_User $user)
-    {
-        // Make sure show is loaded
-        $this->_prepare();
+        $favouriteTable = new Model_DbTable_Favourites();
+        $favouriteTable->addFavourite($this->_user, $this);
     }
 
-    public function markRange(Model_User $user, $fromNumber, $toNumber)
+    public function unfavourite()
+    {
+        $favouriteTable = new Model_DbTable_Favourites();
+        $favouriteTable->removeFavourite($this->_user, $this);
+    }
+    
+    public function markShowAsViewed()
     {
         // Make sure show is loaded
         $this->_prepare();
+
+        foreach( $this->getSeasons() as $season ) $season->markSeasonAsViewed();
+    }
+    
+    public function unmarkShowAsViewed()
+    {
+        // Make sure show is loaded
+        $this->_prepare();
+
+        foreach( $this->getSeasons() as $season ) $season->unmarkSeasonAsViewed();
+    }
+
+    public function markRangeAsViewed($fromNumber, $toNumber)
+    {
+        // Make sure show is loaded
+        $this->_prepare();
+
+        $range = range($fromNumber, $toNumber);
+        foreach( $this->getSeasons() as $season )
+            foreach( $season->getEpisodes() as $episode )
+                if( in_array($episode->getNumber(), $range) ) {
+                    $episode->markAsViewed($this->_user);
+                }
     }
 
     public function getNextAvailableEpisode(Model_User $user)
@@ -137,6 +166,9 @@ class Model_Show
 
     protected function _prepare()
     {
+        // Only prepare once per request
+        if( $this->_isPrepared ) return;
+
         $config = $this->_config;
         $cache = $this->_cache;
         $directory = $this->getDirectory();
@@ -150,7 +182,6 @@ class Model_Show
             $csv = substr($csv, strpos($csv, "\n")+1);
             
             $keys = explode(',', $header);
-
 
             $episodes = array();
 
@@ -178,7 +209,18 @@ class Model_Show
 
         }
 
+        $viewTable = new Model_DbTable_Views();
+        $views = $viewTable->getShowViews($this->_user, $this);
+
+        foreach( $seasons as $season ) {
+            foreach( $season->getEpisodes() as $episode ) {
+                $episode->setViewed( in_Array($episode->getNumber(), $views) );
+            }
+            $season->setUser($this->_user);
+        }
+
         $this->_seasons = $seasons;
+        $this->_isPrepared = true;
     }
 }
 

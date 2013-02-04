@@ -14,6 +14,16 @@ class Model_DbTable_Views extends Zend_Db_Table_Abstract
         return $view != false;
     }
 
+    public function getShowViews(Model_User $user, Model_Show $show)
+    {
+        $views = array();
+        $rowset = $this->fetchAll( $this->select()->where('`user_id` = ?', $user->id)->where('directory = ?', $show->getDirectory()) );
+        foreach( $rowset as $row ) {
+            $views[] = $row->number;
+        }
+        return $views;
+    }
+
     public function markAsViewed(Model_Episode $episode, Model_User $user)
     {
         if( $this->isViewed($episode, $user) ) return;

@@ -7,7 +7,7 @@
                 <h1><?php echo $this->show->getTitle(); ?></h1>
 <?php if( !is_null($this->next) ): $episode = $this->next; $directory = $this->show->getDirectory(); ?>
                 <h4><?php echo $this->translate('Next available episode'); ?>:</h4>
-                <table class="table table-hover table-condensed table-striped">
+                <table id="tableNextAvailable" class="table table-hover table-condensed table-striped">
                     <thead>
                         <tr>
                             <th style="width:30px;">#</th>
@@ -24,13 +24,13 @@
                             <td><?php echo $episode->getEpisodeNumber(); ?></td>
                             <td><?php echo $episode->getTitle(); ?></td>
 <?php if( is_null($episode->isAired()) ): ?>
-                            <td><span class="label label-inverse"><?php echo $this->translate('Unaired'); ?></span></td>
+                            <td><a data-directory="<?php echo $directory; ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markNextAvailableAsViewed"><span class="label label-inverse"><?php echo $this->translate('Unaired'); ?></span></a></td>
 <?php elseif( $episode->isToday() ): ?>
-                            <td><span class="label label-info"><?php echo $this->translate('Today'); ?></span></td>
+                            <td><a data-directory="<?php echo $directory; ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markNextAvailableAsViewed"><span class="label label-info"><?php echo $this->translate('Today'); ?></span></a></td>
 <?php elseif( $episode->isAired() ): ?>
-                            <td><a href="<?php echo $this->baseUrl() . '/index/markviewed/directory/' . $directory . '/number/' . $episode->getNumber(); ?>"><span class="label label-success"><?php echo $this->translate('Available'); ?></span></a></td>
+                            <td><a data-directory="<?php echo $directory; ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markNextAvailableAsViewed"><span class="label label-success"><?php echo $this->translate('Available'); ?></span></a></td>
 <?php else: ?>
-                            <td><span class="label label-inverse"><?php echo $episode->daysUntilAirdate() . ' ' . $this->translate('days left'); ?></span></td>
+                            <td><a data-directory="<?php echo $directory; ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markNextAvailableAsViewed"><span class="label label-inverse"><?php echo $episode->daysUntilAirdate() . ' ' . $this->translate('days left'); ?></span></a></td>
 <?php endif; ?>
                         </tr>
                     </tbody>
@@ -50,7 +50,7 @@
                     </thead>
                     <tbody>
 <?php foreach( $season->getEpisodesReversed() as $episode ): ?>
-                       <tr<?php echo ($episode->isToday() ? ' class="info"' : ''); ?>>
+                       <tr id="episode_<?php echo $episode->getNumber() . ($episode->isToday() ? '" class="info' : ''); ?>">
                             <td><?php echo $episode->getNumber(); ?></td>
                             <td><?php echo $episode->getSeasonNumber(); ?></td>
                             <td><?php echo $episode->getEpisodeNumber(); ?></td>
@@ -60,9 +60,9 @@
 <?php else: ?>
                             <td><a data-directory="<?php echo $this->show->getDirectory(); ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markAsViewed"><span class="label label-success"><?php echo $this->translate('Available'); ?></span></a></td>
 <?php endif; elseif( $episode->isToday() ): ?>
-                            <td><span class="label label-info"><?php echo $this->translate('Today'); ?></span></td>
+                            <td><a data-directory="<?php echo $this->show->getDirectory(); ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markAsViewed"><span class="label label-info"><?php echo $this->translate('Today'); ?></span></a></td>
 <?php else: ?>
-                            <td><span class="label label-inverse"><?php echo (is_null($episode->isAired()) ? $this->translate('Unaired') : $episode->daysUntilAirdate() . ' ' . $this->translate('days left')); ?></span></td>
+                            <td><a data-directory="<?php echo $this->show->getDirectory(); ?>" data-number="<?php echo $episode->getNumber(); ?>" style="cursor:pointer;" class="markAsViewed"><span class="label label-inverse"><?php echo (is_null($episode->isAired()) ? $this->translate('Unaired') : $episode->daysUntilAirdate() . ' ' . $this->translate('days left')); ?></span></a></td>
 <?php endif; ?>
                         </tr>
 <?php endforeach; ?>
@@ -72,9 +72,11 @@
             </div>
             <div class="span4">
                 <ul class="nav nav-list">
-                    <li class="nav-header"><?php echo $this->translate('Quick Search'); ?></li>
-                    <li><input type="text" id="search" data-provide="typeahead" autocomplete="off" class="input-medium search-query"></li>
-                    <li class="nav-header"><?php echo $this->translate('Favourites'); ?></li>
+                    <div class="affix-top" data-spy="affix">
+                        <li class="nav-header"><?php echo $this->translate('Quick Search'); ?></li>
+                        <li><input type="text" id="search" data-provide="typeahead" autocomplete="off" class="input-medium search-query"></li>
+                    </div>
+                    <li style="margin-top:9px;" class="nav-header"><?php echo $this->translate('Favourites'); ?></li>
 <?php if( count($this->favourites) == 0 ): ?>
                     <div class="alert">
                         <strong><?php echo $this->translate('Warning'); ?>!</strong> <?php echo $this->translate('You have no favourites yet! Why not add some?'); ?>
@@ -85,12 +87,13 @@
 <?php endforeach; ?>
                     <li class="nav-header"><?php echo $this->translate('Actions'); ?></li>
 <?php if( !$this->favourited ): ?>
-                    <li><a href="<?php echo $this->baseUrl(); ?>/index/favourite/directory/<?php echo $this->show->getDirectory(); ?>"><i class="icon icon-plus-sign"></i> <?php echo $this->translate('Add as favourite'); ?></a></li>
+                    <li><a href="<?php echo $this->url(array('action' => 'favourite', 'directory' => $this->show->getDirectory()), 'actions'); ?>"><i class="icon icon-plus-sign"></i> <?php echo $this->translate('Add to favourites'); ?></a></li>
 <?php else: ?>
-                    <li><a href="<?php echo $this->baseUrl(); ?>/index/unfavourite/directory/<?php echo $this->show->getDirectory(); ?>"><i class="icon icon-minus-sign"></i> <?php echo $this->translate('Remove from favourites'); ?></a></li>
+                    <li><a href="<?php echo $this->url(array('action' => 'unfavourite', 'directory' => $this->show->getDirectory()), 'actions'); ?>"><i class="icon icon-minus-sign"></i> <?php echo $this->translate('Remove from favourites'); ?></a></li>
 <?php endif; ?>
-                    <li><a href="<?php echo $this->baseUrl(); ?>/index/markallviewed/directory/<?php echo $this->show->getDirectory(); ?>"><i class="icon icon-eye-open"></i> <?php echo $this->translate('Mark all as viewed'); ?></a></li>
-                    <li><a href="<?php echo $this->baseUrl(); ?>/index/unmarkallviewed/directory/<?php echo $this->show->getDirectory(); ?>"><i class="icon icon-eye-close"></i> <?php echo $this->translate('Mark all as available'); ?></a></li>
+                    <li><a href="<?php echo $this->url(array('action' => 'markallasviewed', 'directory' => $this->show->getDirectory()), 'actions'); ?>"><i class="icon icon-eye-open"></i> <?php echo $this->translate('Mark all as viewed'); ?></a></li>
+                    <li><a href="#modalMarkRangeAsViewed" data-toggle="modal"><i class="icon icon-eye-open"></i> <?php echo $this->translate('Mark range as viewed'); ?></a></li>
+                    <li><a href="<?php echo $this->url(array('action' => 'unmarkallasviewed', 'directory' => $this->show->getDirectory()), 'actions'); ?>"><i class="icon icon-eye-close"></i> <?php echo $this->translate('Mark all as available'); ?></a></li>
                     <li class="nav-header"><?php echo $this->translate('Account'); ?></li>
                     <li><a href="#modalSettings" data-toggle="modal"><i class="icon icon-user"></i> <?php echo $this->translate('Settings'); ?></a></li>
                     <li><a href="<?php echo $this->baseUrl(); ?>/index/signout"><i class="icon icon-off"></i> <?php echo $this->translate('Sign out'); ?></a></li>
@@ -98,5 +101,28 @@
                     <li><a href="#modalFeedback" data-toggle="modal"><i class="icon icon-heart"></i> <?php echo $this->translate('Give feedback or suggestions'); ?></a></li>
                     <li><a href="#modalHelp" data-toggle="modal"><i class="icon icon-question-sign"></i> <?php echo $this->translate('Get some help'); ?></a></li>
                 </ul>
+            </div>
+        </div>
+        <div id="modalMarkRangeAsViewed" class="modal fade hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3><?php echo $this->translate('Mark range as viewed'); ?> <i class="icon icon-list"></i></h3>
+            </div>
+            <div class="modal-body">
+<?php if( $this->markRenageAsViewedError ): ?>
+                <div class="alert alert-error">
+                    <strong><?php echo $this->translate('Warning'); ?>!</strong> <?php echo $this->humanReadableError; ?>
+                </div>
+<?php endif; ?>
+                <form method="POST">
+                    <fieldset>
+                        <input type="text" name="fromNumber" placeholder="<?php echo $this->translate('From'); ?>" class="span3" /> <input type="text" name="toNumber" placeholder="<?php echo $this->translate('To'); ?>" class="span3" />
+                        <span class="help-block"><?php echo $this->translate('Fill in the # numbers of a range of episodes to be marked as viewed.'); ?></span>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal"><?php echo $this->translate('Close'); ?></button>
+                <button onclick="window.location = '<?php echo $this->url(array('action' => 'markrangeasviewed', 'directory' => $this->show->getDirectory()), 'actions'); ?>/from/' + $(this).parent().parent().find('form input[name=toNumber]').val() + '/to/' + $(this).parent().parent().find('form input[name=fromNumber]').val();" class="btn btn-success"><?php echo $this->translate('Mark range as viewed'); ?></button>
             </div>
         </div>

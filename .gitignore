@@ -1,3 +1,4 @@
 .*.swp
 phinx.yml
 application/configs/application.ini
+public/.htaccess

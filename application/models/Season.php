@@ -4,6 +4,7 @@ class Model_Season
 {
     protected $_episodes;
 
+    protected $_user;
     protected $_show;
     protected $_seasonNumber;
 
@@ -13,6 +14,11 @@ class Model_Season
 
         $this->_show = $show;
         $this->_seasonNumber = $seasonNumber;
+    }
+
+    public function setUser(Model_User $user)
+    {
+        $this->_user = $user;
     }
 
     public function getShow()
@@ -66,19 +72,19 @@ class Model_Season
         return new Zend_Config(array_reverse($reversed), true);
     }
 
-    public function markSeasonAsViewed(Model_User $user)
+    public function markSeasonAsViewed()
     {
-        foreach( $this->getEpisodes() as $episode ) $episode->markAsViewed($user);
+        foreach( $this->getEpisodes() as $episode ) $episode->markAsViewed($this->_user);
     }
 
-    public function unmarkSeasonAsViewed(Model_User $user)
+    public function unmarkSeasonAsViewed()
     {
-        foreach( $this->getEpisodes() as $episode ) $episode->unmarkAsViewed($user);
+        foreach( $this->getEpisodes() as $episode ) $episode->unmarkAsViewed($this->_user);
     }
 
-    public function isViewed(Model_User $user)
+    public function isViewed()
     {
-        foreach( $this->getEpisodes() as $episode ) if( !$episode->isViewed($user) && $episode->isAired() ) return false;
+        foreach( $this->getEpisodes() as $episode ) if( !$episode->isViewed($this->_user) && $episode->isAired() ) return false;
         return true;
     }
 }

@@ -6,7 +6,7 @@ class Model_Index
     protected $_cache;
     protected $_shows;
 
-    public function __construct($config, $cache)
+    public function __construct(Model_User $user, $config, $cache)
     {
         $this->_config = $config;
         $this->_cache = $cache;
@@ -37,7 +37,7 @@ class Model_Index
 
         }
 
-        foreach( $index as $directory => $details ) $this->_shows[$directory] = new Model_Show($directory, new Zend_Config($details, true), $config, $cache);
+        foreach( $index as $directory => $details ) $this->_shows[$directory] = new Model_Show($directory, new Zend_Config($details, true), $user, $config, $cache);
     }
 
     public function search($query)

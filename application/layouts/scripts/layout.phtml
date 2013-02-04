@@ -27,7 +27,7 @@
 <?php echo $this->layout()->content; ?>
         <hr />
         <footer>
-            <p>© Kopibeskyttet av Kristoffer A. Iversen 2013. Alle rettigheter reserverte.</p>
+            <p class="muted">© <?php echo $this->translate($this->copyright); ?> – <?php echo $this->translate('Developed by'); ?> <a href="http://kaizn.org" class="muted">Kristoffer A. Iversen</a></p>
         </footer>
         <div id="modalSettings" class="modal fade hide">
             <div class="modal-header">
@@ -109,7 +109,6 @@
 <?php endif; ?>
                 <form method="POST">
                     <fieldset>
-                        <input type="hidden" name="type" value="feedback" />
                         <input type="text" name="subject" value="<?php echo $this->feedbackSubject; ?>" placeholder="Short and descriptive subject" class="span6" />
                         <textarea name="message" rows="10" class="span6"><?php echo $this->feedbackTextarea; ?></textarea>
                         <span class="help-block"><?php echo $this->translate('Your feedback is important for us to improve. Please let us know what\'s good and what\'s missing.'); ?></span>
@@ -118,7 +117,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn" data-dismiss="modal"><?php echo $this->translate('Close'); ?></button>
-                <button onclick="$(this).parent().parent().find('form').submit();" class="btn btn-success"><?php echo $this->translate('Send feedback'); ?></button>
+                <button class="btn btn-success"><?php echo $this->translate('Send feedback'); ?></button>
             </div>
         </div>
         <div id="modalHelp" class="modal fade hide">
@@ -191,12 +190,44 @@
                 }
             });
 
-            var markAsViewed = function() {
+            $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a').click(function() {
                 var label = $(this).children('span');
+                if( $(label).hasClass('label-inverse') ) return;
+                if( $(label).hasClass('label-info') ) return;
                 $(label).removeClass('label-success').addClass('label-warning');
                 $(label).html('<?php echo $this->translate('Wait …'); ?>');
                 $.get('<?php echo $this->url(array('action' => 'markepisodeviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
                     if( data.status == 200 ) {
+                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(0) a').html(data.parameters.showTitle);
+                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(1)').html(data.parameters.season);
+                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(2)').html(data.parameters.episode);
+
+                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a').data('number', data.parameters.number);
+                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
+                        $('#overviewTableNextAvailableEpisodes tbody tr td:eq(3) a span').html(data.parameters.label);
+                    }
+                });
+            });
+
+            var markAsViewed = function() {
+                var label = $(this).children('span');
+                if( $(label).hasClass('label-inverse') ) return;
+                if( $(label).hasClass('label-info') ) return;
+                $(label).removeClass('label-success').addClass('label-warning');
+                $(label).html('<?php echo $this->translate('Wait …'); ?>');
+                $.get('<?php echo $this->url(array('action' => 'markepisodeviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
+                    if( data.status == 200 ) {
+                        $(label).html('<?php echo $this->translate('Viewed'); ?>');
+                        $(label).parent().removeClass('markAsViewed').addClass('unmarkAsViewed');
+                        $(label).parent().unbind('click');
+                        $(label).parent().click(unmarkAsViewed);
+                        $('#tableNextAvailable tbody tr td:eq(0)').html(data.parameters.number);
+                        $('#tableNextAvailable tbody tr td:eq(1)').html(data.parameters.season);
+                        $('#tableNextAvailable tbody tr td:eq(2)').html(data.parameters.episode);
+                        $('#tableNextAvailable tbody tr td:eq(3)').html(data.parameters.episodeTitle);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').html(data.parameters.label);
+                    }else if( data.status == 204 ) {
                         $(label).html('<?php echo $this->translate('Viewed'); ?>');
                         $(label).parent().removeClass('markAsViewed').addClass('unmarkAsViewed');
                         $(label).parent().unbind('click');
@@ -210,6 +241,18 @@
                 $(label).html('<?php echo $this->translate('Wait …'); ?>');
                 $.get('<?php echo $this->url(array('action' => 'unmarkepisodeviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number')}, function(data) {
                     if( data.status == 200 ) {
+                        $(label).html('<?php echo $this->translate('Available'); ?>');
+                        $(label).removeClass('label-warning').addClass('label-success');
+                        $(label).parent().unbind('click');
+                        $(label).parent().click(markAsViewed);
+                        $('#tableNextAvailable tbody tr td:eq(0)').html(data.parameters.number);
+                        $('#tableNextAvailable tbody tr td:eq(1)').html(data.parameters.season);
+                        $('#tableNextAvailable tbody tr td:eq(2)').html(data.parameters.episode);
+                        $('#tableNextAvailable tbody tr td:eq(3)').html(data.parameters.episodeTitle);
+                        $('#tableNextAvailable tbody tr td:eq(4) a').data('number', data.parameters.number);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').html(data.parameters.label);
+                    }else if( data.status == 204 ) {
                         $(label).html('<?php echo $this->translate('Available'); ?>');
                         $(label).removeClass('label-warning').addClass('label-success');
                         $(label).parent().unbind('click');
@@ -231,8 +274,15 @@
                         $(label).parent().removeClass('markSeasonAsViewed').addClass('unmarkSeasonAsViewed');
                         $(label).parent().unbind('click');
                         $(label).parent().click(unmarkSeasonAsViewed);
-                        $(label).parent().parent().parent().parent().parent().find('tbody a span.label').removeClass('label-success').addClass('label-warning').html('<?php echo $this->translate('Viewed'); ?>');
+                        $(label).parent().parent().parent().parent().parent().find('tbody a span.label-success').removeClass('label-success').addClass('label-warning').html('<?php echo $this->translate('Viewed'); ?>');
                         $(label).parent().parent().parent().parent().parent().find('tbody a').unbind('click').click(unmarkAsViewed);
+                        $('#tableNextAvailable tbody tr td:eq(0)').html(data.parameters.number);
+                        $('#tableNextAvailable tbody tr td:eq(1)').html(data.parameters.season);
+                        $('#tableNextAvailable tbody tr td:eq(2)').html(data.parameters.episode);
+                        $('#tableNextAvailable tbody tr td:eq(3)').html(data.parameters.episodeTitle);
+                        $('#tableNextAvailable tbody tr td:eq(4) a').data('number', data.parameters.number);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').html(data.parameters.label);
                     }
                 });
             };
@@ -246,8 +296,15 @@
                         $(label).removeClass('label-warning').addClass('label-success');
                         $(label).parent().unbind('click');
                         $(label).parent().click(markSeasonAsViewed);
-                        $(label).parent().parent().parent().parent().parent().find('tbody a span.label').removeClass('label-warning').addClass('label-success').html('<?php echo $this->translate('Available'); ?>');
+                        $(label).parent().parent().parent().parent().parent().find('tbody a span.label-warning').removeClass('label-warning').addClass('label-success').html('<?php echo $this->translate('Available'); ?>');
                         $(label).parent().parent().parent().parent().parent().find('tbody a').unbind('click').click(markAsViewed);
+                        $('#tableNextAvailable tbody tr td:eq(0)').html(data.parameters.number);
+                        $('#tableNextAvailable tbody tr td:eq(1)').html(data.parameters.season);
+                        $('#tableNextAvailable tbody tr td:eq(2)').html(data.parameters.episode);
+                        $('#tableNextAvailable tbody tr td:eq(3)').html(data.parameters.episodeTitle);
+                        $('#tableNextAvailable tbody tr td:eq(4) a').data('number', data.parameters.number);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
+                        $('#tableNextAvailable tbody tr td:eq(4) a span').html(data.parameters.label);
                     }
                 });
             };
@@ -255,23 +312,51 @@
             $('a.markSeasonAsViewed').click(markSeasonAsViewed);
             $('a.unmarkSeasonAsViewed').click(unmarkSeasonAsViewed);
 
+            var markNextAvailableAsViewed = function() {
+                var label = $(this).children('span');
+                if( $(label).hasClass('label-inverse') ) return;
+                if( $(label).hasClass('label-info') ) return;
+                $(label).removeClass('label-success').addClass('label-warning');
+                $(label).html('<?php echo $this->translate('Wait …'); ?>');
+                $.get('<?php echo $this->url(array('action' => 'markepisodeviewed'), 'ajax'); ?>', {directory: $(this).data('directory'), number: $(this).data('number'), isNext: true}, function(data) {
+                    $(label).html('<?php echo $this->translate('Available'); ?>');
+                    $(label).removeClass('label-warning').addClass('label-success');
+                    if( data.status == 200 ) {
+                        var number = $(label).parent().data('number');
+                        $('#episode_' + number).find('td:eq(4) a span').html('<?php echo $this->translate('Viewed') ?>').removeClass('label-success').addClass('label-warning');
+                        $('#episode_' + number).find('td:eq(4) a').unbind('click').click(unmarkAsViewed);
+                        $(label).parent().parent().parent().children('td:eq(0)').html(data.parameters.number);
+                        $(label).parent().parent().parent().children('td:eq(1)').html(data.parameters.season);
+                        $(label).parent().parent().parent().children('td:eq(2)').html(data.parameters.episode);
+                        $(label).parent().parent().parent().children('td:eq(3)').html(data.parameters.episodeTitle);
+                        $(label).parent().parent().parent().find('td:eq(4) a').data('number', data.parameters.number);
+                        $(label).parent().parent().parent().find('td:eq(4) a span').removeClass('lable-success').removeClass('label-warning').removeClass('label-inverse').addClass(data.parameters.class);
+                        $(label).parent().parent().parent().find('td:eq(4) a span').html(data.parameters.label);
+                    }else if( data.status == 204 ) {
+                        var number = $(label).parent().data('number');
+                        $('#episode_' + number).find('td:eq(4) a span').html('<?php echo $this->translate('Viewed') ?>').removeClass('label-success').addClass('label-warning');
+                        $('#episode_' + number).find('td:eq(4) a').unbind('click').click(unmarkAsViewed);
+                        $('#tableNextAvailable').prev('h4').remove();
+                        $('#tableNextAvailable').remove();
+                    }
+                });
+            };
+
+            $('a.markNextAvailableAsViewed').click(markNextAvailableAsViewed);
+
             $('#collapseSettingsOne').find('button').click(function() {
                 var button = this;
                 $(button).parent().parent().parent().find('div.alert').remove();
-                $.get('<?php echo $this->baseUrl(); ?>/index/ajaxupdatesettings',
+                $.get('<?php echo $this->url(array('action' => 'updatesettings'), 'ajax'); ?>',
                 {
                     language: $(this).parent().parent().find('div.control-group select').val(),
                     password: $(this).parent().parent().find('div.control-group input[name=password]').val(),
                     passwordAgain: $(this).parent().parent().find('div.control-group input[name=passwordAgain]').val()
                 }, function(data) {
-                    if( typeof data != 'object' ) {
-                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>Failure!</strong> Something went wrong</div>');
-                        return;
-                    }
-                    if( data.error ) {
-                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.exclaim + '!</strong> ' + data.humanReadable + '</div>');
-                    }else{
-                        $(button).parent().parent().parent().prepend('<div class="alert alert-success"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.exclaim + '!</strong> ' + data.humanReadable + '</div>');
+                    if( data.status == 200 ) {
+                        $(button).parent().parent().prepend('<div class="alert alert-success"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.parameters.exclaim + '!</strong> ' + data.parameters.humanReadable + '</div>');
+                    }else if( data.status = 400 ) {
+                        $(button).parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.parameters.exclaim + '!</strong> ' + data.parameters.humanReadable + '</div>');
                     }
                 });
             });
@@ -279,26 +364,37 @@
             $('#collapseSettingsTwo').find('button').click(function() {
                 var button = this;
                 $(button).parent().parent().parent().find('div.alert').remove();
-                $.get('<?php echo $this->baseUrl(); ?>/index/ajaxremoveaccount',
+                $.get('<?php echo $this->url(array('action' => 'removeaccount'), 'ajax'); ?>',
                 {
                     password: $(this).parent().parent().find('div.control-group input[name=password]').val()
                 }, function(data) {
-                    if( typeof data != 'object' ) {
-                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>Failure!</strong> Something went wrong</div>');
-                        return;
-                    }
-                    if( data.error ) {
-                        $(button).parent().parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.exclaim + '!</strong> ' + data.humanReadable + '</div>');
-                    }else{
-                        window.location = '<?php echo $this->baseUrl(); ?>/';
+                    if( data.status == 200 ) {
+                        window.location = '<?php echo $this->url(array(), 'overview'); ?>';
+                    }else if( data.status = 400 ) {
+                        $(button).parent().parent().prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.parameters.exclaim + '!</strong> ' + data.parameters.humanReadable + '</div>');
                     }
                 });
             });
 
-<?php if( $this->feedbackError ): ?>
-            $('#modalFeedback').modal('show');
+            $('div.affix-top').affix({
+                offset: {top: $('div.span4 ul.nav-list').height() + 100}
+            });
 
-<?php endif; ?>
+            $('#modalFeedback div.modal-footer button.btn-success').click(function() {
+                var button = this;
+                $(button).attr('disabled', 'disabled').html('<?php echo $this->translate('Sending …'); ?>');
+                $(button).parent().parent().find('div.modal-body div.alert').remove();
+                $.post('<?php echo $this->url(array('action' => 'feedback'), 'ajax'); ?>', {subject: $(this).parent().parent().find('div.modal-body input').val(), message: $(this).parent().parent().find('div.modal-body textarea').val()}, function(data) {
+                    if( data.status == 200 ) {
+                        $(button).html('<?php echo $this->translate('Sent!'); ?>');
+                        $(button).parent().parent().find('div.modal-body').prepend('<div class="alert alert-success"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.parameters.exclaim + '!</strong> ' + data.parameters.humanReadable + '</div>');
+                    }else if( data.status = 400 ) {
+                        $(button).removeAttr('disabled').html('<?php echo $this->translate('Send feedback'); ?>');
+                        $(button).parent().parent().find('div.modal-body').prepend('<div class="alert alert-error"><a class="close" data-dismiss="alert" href="#">&times;</a><strong>' + data.parameters.exclaim + '!</strong> ' + data.parameters.humanReadable + '</div>');
+                    }
+                });
+            });
+
         });
     </script>
     <script type="text/javascript">
