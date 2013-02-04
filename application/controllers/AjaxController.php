@@ -58,7 +58,7 @@ class AjaxController extends Zend_Controller_Action
                 'number' => $episode->getNumber(),
                 'season' => $episode->getSeasonNumber(),
                 'episode' => $episode->getEpisodeNumber(),
-                'class' => ($episode->isToday() ? 'label-today' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
+                'class' => ($episode->isToday() ? 'label-info' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
                 'label' => ($episode->isToday() ? $this->view->translate('Today') : ($episode->isAired() ? $this->view->translate('Available') : $episode->daysUntilAirdate() . ' ' . $this->view->translate('days left'))),
             );
         }else $lastEpisode = true;
@@ -86,7 +86,7 @@ class AjaxController extends Zend_Controller_Action
                 'number' => $episode->getNumber(),
                 'season' => $episode->getSeasonNumber(),
                 'episode' => $episode->getEpisodeNumber(),
-                'class' => ($episode->isToday() ? 'label-today' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
+                'class' => ($episode->isToday() ? 'label-info' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
                 'label' => ($episode->isToday() ? $this->view->translate('Today') : ($episode->isAired() ? $this->view->translate('Available') : $episode->daysUntilAirdate() . ' ' . $this->view->translate('days left'))),
             );
         }else $lastEpisode = true;
@@ -114,7 +114,7 @@ class AjaxController extends Zend_Controller_Action
                 'number' => $episode->getNumber(),
                 'season' => $episode->getSeasonNumber(),
                 'episode' => $episode->getEpisodeNumber(),
-                'class' => ($episode->isToday() ? 'label-today' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
+                'class' => ($episode->isToday() ? 'label-info' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
                 'label' => ($episode->isToday() ? $this->view->translate('Today') : ($episode->isAired() ? $this->view->translate('Available') : $episode->daysUntilAirdate() . ' ' . $this->view->translate('days left'))),
             );
         }else $lastEpisode = true;
@@ -142,7 +142,7 @@ class AjaxController extends Zend_Controller_Action
                 'number' => $episode->getNumber(),
                 'season' => $episode->getSeasonNumber(),
                 'episode' => $episode->getEpisodeNumber(),
-                'class' => ($episode->isToday() ? 'label-today' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
+                'class' => ($episode->isToday() ? 'label-info' : ($episode->isAired() ? 'label-success' : 'label-inverse')),
                 'label' => ($episode->isToday() ? $this->view->translate('Today') : ($episode->isAired() ? $this->view->translate('Available') : $episode->daysUntilAirdate() . ' ' . $this->view->translate('days left'))),
             );
         }else $lastEpisode = true;
