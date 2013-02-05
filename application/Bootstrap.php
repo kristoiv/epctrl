@@ -11,10 +11,10 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $front     = Zend_Controller_Front::getInstance();
         $front->setRouter($router);
     }
-    protected function _initCookies()
+    /*protected function _initCookies()
     {
         $config = new Zend_Config($this->getOptions());
         Zend_Session::rememberMe($config->portal->login->expire);
-    }
+    }*/
 }
 
