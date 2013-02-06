@@ -175,7 +175,7 @@
         </div>
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap.js"></script>
     <script>
         $(document).ready(function() {
 
@@ -393,8 +393,14 @@
                 });
             });
 
-            $('div.affix-top').affix({
+            $('[data-spy="affix"]').affix({
                 offset: {top: $('div.span4 ul.nav-list').height() + 100}
+            });
+            $('[data-spy="affix"]').on('affixed', function() {
+                $(this).find('li:last').show();
+            });
+            $('[data-spy="affix"]').on('unaffixed', function() {
+                $(this).find('li:last').hide();
             });
 
             $('#modalFeedback div.modal-footer button.btn-success').click(function() {

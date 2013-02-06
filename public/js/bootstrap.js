@@ -2100,6 +2100,12 @@
 
     if (this.affixed === affix) return
 
+    if (affix) {
+        this.$element.trigger('unaffixed');
+    } else {
+        this.$element.trigger('affixed');
+    }
+
     this.affixed = affix
     this.unpin = affix == 'bottom' ? position.top - scrollTop : null
 

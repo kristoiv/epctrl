@@ -8,7 +8,6 @@ class Model_Episode
     protected $_episode;
     protected $_title;
     protected $_date;
-    protected $_isAired;
     protected $_isSpecial;
     protected $_isViewed;
 
@@ -21,10 +20,9 @@ class Model_Episode
         $this->_title = $episode->title;
 
         $date = DateTime::createFromFormat('d/M/y', $episode->airdate);
-        if( $date === false) $this->_date = null;
+        if( $date === false ) $this->_date = null;
         else $this->_date = $date;
 
-        if( $date ) $this->_isAired = $date->format('Y-m-d') < date('Y-m-d');
         $this->_isSpecial = $episode->special !== 'n';
     }
 
@@ -65,7 +63,8 @@ class Model_Episode
 
     public function isAired()
     {
-        return $this->_isAired;
+        if( !$this->getAirdate() instanceof DateTime ) return false;
+        return $this->getAirdate()->format('Y-m-d') < date('Y-m-d');
     }
 
     public function isToday()
