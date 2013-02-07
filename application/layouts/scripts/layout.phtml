@@ -190,6 +190,13 @@
                 }
             });
 
+            $('#modalFeedback').on('hidden', function() {
+                var button = $(this).find('div.modal-footer button.btn-success').removeAttr('disabled').html('<?php echo $this->translate('Send feedback'); ?>');
+                $(this).find('div.modal-body input').val('');
+                $(this).find('div.modal-body textarea').val('');
+                $(this).find('div.modal-body div.alert').remove();
+            });
+
             $('#overviewTableNextAvailableEpisodes tbody tr').find('td:eq(3) a').click(function() {
                 var label = $(this).children('span');
                 if( $(label).hasClass('label-inverse') ) return;
