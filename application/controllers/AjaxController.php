@@ -170,7 +170,7 @@ class AjaxController extends Zend_Controller_Action
         $mail->setBodyText($message);
         $mail->send();
 
-        return $this->_respond(200, array('exclaim' => $this->view->translate('Success'), 'humanReadable' => $this->view->translate('Thank you for you feedback')));
+        return $this->_respond(200, array('exclaim' => $this->view->translate('Success'), 'humanReadable' => $this->view->translate('Thank you for your feedback')));
     }
 
     public function updatesettingsAction()
@@ -193,6 +193,7 @@ class AjaxController extends Zend_Controller_Action
         // Reconnect offline row
         $user->setTable(new Model_DbTable_Users());
 
+        $newLanguage = $user->language != $language;
         $user->language = $language;
         
         if( $password != '' ) {
@@ -201,7 +202,7 @@ class AjaxController extends Zend_Controller_Action
 
         $user->save();
 
-        return $this->_respond(200, array('exclaim' => $this->view->translate('Success'), 'humanReadable' => $this->view->translate('Account has been updated.')));
+        return $this->_respond(200, array('exclaim' => $this->view->translate('Success'), 'humanReadable' => $this->view->translate('Account has been updated.' . ($newLanguage ? ' Refresh this page for the language to change.' : '')), 'newLanguage' => $newLanguage));
     }
 
     public function removeaccountAction()
